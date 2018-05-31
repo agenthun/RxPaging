@@ -11,12 +11,12 @@ import com.google.gson.annotations.SerializedName
  */
 @Entity(tableName = "repos")
 data class Repo(
-        @PrimaryKey @field:SerializedName("id") val id: Long,
-        @field:SerializedName("name") val name: String,
-        @field:SerializedName("fullName") val fullName: String,
-        @field:SerializedName("description") val description: String?,
-        @field:SerializedName("url") val url: String,
-        @field:SerializedName("stars") val stars: Int,
-        @field:SerializedName("forks") val forks: Int,
-        @field:SerializedName("language") val language: String?
+        @PrimaryKey @SerializedName("id") val id: Long,
+        @SerializedName("name") val name: String,
+        @SerializedName("full_name") val fullName: String?,
+        @SerializedName("description") val description: String?,
+        @SerializedName("html_url") val url: String,
+        @SerializedName("stargazers_count") val stars: Int,
+        @SerializedName("forks_count") val forks: Int,
+        @SerializedName("language") val language: String?
 )
