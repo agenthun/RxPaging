@@ -20,13 +20,13 @@ class GithubBoundaryCallback(
     private var currPage: Int = 1
     override fun onZeroItemsLoaded() {
         super.onZeroItemsLoaded()
-        currPage = 1
-        search(currPage)
+        if (currPage == 1)
+            search(currPage)
     }
 
     override fun onItemAtEndLoaded(itemAtEnd: Repo) {
         super.onItemAtEndLoaded(itemAtEnd)
-        search(++currPage)
+        search(currPage)
     }
 
     private fun search(page: Int) {
@@ -34,6 +34,7 @@ class GithubBoundaryCallback(
         service.searchRepos(apiQuery, page, itemsPerPage)
                 .flatMap {
                     db.reposDao().insert(it.items)
+                    currPage++
                     return@flatMap Flowable.just(it)
                 }.subscribeOn(Schedulers.io()).subscribe()
     }

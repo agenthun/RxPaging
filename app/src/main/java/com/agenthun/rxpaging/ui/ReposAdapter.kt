@@ -35,7 +35,7 @@ class ReposAdapter(private val retryCallback: () -> Unit)
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         when (getItemViewType(position)) {
-            R.layout.listitem_repo -> (holder as RepoViewHolder).bind(getItem(position)!!)
+            R.layout.listitem_repo -> (holder as RepoViewHolder).bind(getItem(position))
             R.layout.listitem_network_state -> (holder as NetworkStateItemViewHolder).bind(networkState)
         }
     }
@@ -44,9 +44,9 @@ class ReposAdapter(private val retryCallback: () -> Unit)
 
     override fun getItemViewType(position: Int): Int {
         return if (hasExtraRow() && position == itemCount - 1) {
-            R.layout.listitem_repo
-        } else {
             R.layout.listitem_network_state
+        } else {
+            R.layout.listitem_repo
         }
     }
 
@@ -79,7 +79,6 @@ class ReposAdapter(private val retryCallback: () -> Unit)
             override fun areContentsTheSame(oldItem: Repo?, newItem: Repo?): Boolean {
                 return oldItem == newItem
             }
-
         }
     }
 
@@ -101,24 +100,24 @@ class ReposAdapter(private val retryCallback: () -> Unit)
             }
         }
 
-        fun bind(repo: Repo) {
+        fun bind(repo: Repo?) {
             this.repo = repo
-            name.text = repo.fullName
+            name.text = repo?.fullName
 
             var descriptionVisibility = View.GONE
-            if (repo.description != null) {
-                description.text = repo.description
+            if (repo?.description != null) {
+                description.text = repo?.description
                 descriptionVisibility = View.VISIBLE
             }
             description.visibility = descriptionVisibility
 
-            stars.text = repo.stars.toString()
-            forks.text = repo.forks.toString()
+            stars.text = repo?.stars.toString()
+            forks.text = repo?.forks.toString()
 
             var languageVisibility = View.GONE
-            if (!repo.language.isNullOrEmpty()) {
+            if (!repo?.language.isNullOrEmpty()) {
                 val resources = this.itemView.context.resources
-                language.text = resources.getString(R.string.language, repo.language)
+                language.text = resources.getString(R.string.language, repo?.language)
                 languageVisibility = View.VISIBLE
             }
             language.visibility = languageVisibility

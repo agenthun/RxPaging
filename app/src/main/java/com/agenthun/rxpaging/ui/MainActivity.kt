@@ -7,11 +7,8 @@ import android.view.KeyEvent
 import android.view.inputmethod.EditorInfo
 import com.agenthun.rxpaging.Injection
 import com.agenthun.rxpaging.R
-import com.agenthun.rxpaging.api.GithubService
-import com.agenthun.rxpaging.repository.GithubRepository
-import io.reactivex.android.schedulers.AndroidSchedulers
+import com.agenthun.rxpaging.vo.NetworkState
 import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.activity_main.*
 
 private const val TAG = "MainActivity"
@@ -56,9 +53,17 @@ class MainActivity : AppCompatActivity() {
             if (it.isNotEmpty()) {
                 recyclerView.scrollToPosition(0)
                 adapter.submitList(null)
-                disposable.add(viewModel.showSearchResult(it.toString()).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe(
-                        { adapter.submitList(it) },
-                        { error -> Log.e(TAG, "error: ${error.message}") }
+                adapter.setNetworkState(NetworkState.LOADING)
+                disposable.add(viewModel.showSearchResult(it.toString()).subscribe(
+                        {
+                            Log.d(TAG, "it=$it")
+                            adapter.submitList(it)
+                            adapter.setNetworkState(NetworkState.LOADED)
+                        },
+                        { error ->
+                            Log.e(TAG, "error: ${error.message}")
+                            adapter.setNetworkState(NetworkState.error(error.message))
+                        }
                 ))
             }
         }

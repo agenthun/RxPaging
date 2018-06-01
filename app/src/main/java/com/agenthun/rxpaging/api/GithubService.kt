@@ -1,5 +1,6 @@
 package com.agenthun.rxpaging.api
 
+import android.util.Log
 import com.agenthun.rxpaging.vo.RepoSearchResponse
 import io.reactivex.Flowable
 import okhttp3.OkHttpClient
@@ -27,8 +28,11 @@ interface GithubService {
         const val IN_QUALIFIER = "in:name,description"
 
         fun create(): GithubService {
-            val logger = HttpLoggingInterceptor()
+            val logger = HttpLoggingInterceptor(HttpLoggingInterceptor.Logger {
+                Log.d("GithubService", it)
+            })
             logger.level = HttpLoggingInterceptor.Level.BODY
+            
             val client = OkHttpClient.Builder()
                     .addInterceptor(logger)
                     .build()
