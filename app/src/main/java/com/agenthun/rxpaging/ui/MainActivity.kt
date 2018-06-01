@@ -6,6 +6,7 @@ import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.KeyEvent
 import android.view.inputmethod.EditorInfo
+import android.widget.Toast
 import com.agenthun.rxpaging.Injection
 import com.agenthun.rxpaging.R
 import io.reactivex.disposables.CompositeDisposable
@@ -18,6 +19,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var viewModel: ReposViewModel
     private lateinit var adapter: ReposAdapter
     private val disposable = CompositeDisposable()
+    private var inSearch = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,8 +44,20 @@ class MainActivity : AppCompatActivity() {
             }
         })
 
+        swipeRefresh.setOnRefreshListener {
+            Log.i(TAG, "refresh")
+            searchRepo.text.trim().let {
+                if (it.isNotEmpty() && inSearch) {
+                    viewModel.refreshSearch()
+                } else {
+                    swipeRefresh.isRefreshing = false
+                }
+            }
+        }
+
         adapter = ReposAdapter({
             Log.i(TAG, "retry")
+            viewModel.retry()
         })
         recyclerView.adapter = adapter
     }
@@ -51,17 +65,33 @@ class MainActivity : AppCompatActivity() {
     private fun updateRepoListFromInput() {
         searchRepo.text.trim().let {
             if (it.isNotEmpty()) {
+                inSearch = true
                 recyclerView.scrollToPosition(0)
                 adapter.submitList(null)
-                disposable.add(viewModel.showSearchResult(it.toString(), { runOnUiThread { adapter.setNetworkState(it) } }).subscribe(
-                        {
-                            Log.d(TAG, "it=$it")
-                            adapter.submitList(it)
-                        },
-                        { error ->
-                            Log.e(TAG, "error: ${error.message}")
-                        }
-                ))
+                disposable.add(viewModel.showSearchResult(
+                        it.toString(),
+                        { networkState, forceRefresh ->
+                            runOnUiThread {
+                                if (forceRefresh) {
+                                    swipeRefresh.isRefreshing = networkState.isRunning
+                                } else {
+                                    swipeRefresh.isRefreshing = false
+                                    adapter.setNetworkState(networkState)
+                                }
+                            }
+                        })
+                        .subscribe(
+                                {
+                                    Log.d(TAG, "it=$it")
+                                    adapter.submitList(it)
+                                },
+                                { error ->
+                                    Log.e(TAG, "error: ${error.message}")
+                                    Toast.makeText(this, error.message, Toast.LENGTH_SHORT).show()
+                                }
+                        ))
+            } else {
+                inSearch = false
             }
         }
     }

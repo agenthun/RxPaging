@@ -19,13 +19,26 @@ class GithubRepository(
         private val db: RepoDb,
         private val service: GithubService) {
 
+    private val boundaryCallback = GithubBoundaryCallback(db, service)
+
     fun search(query: String,
                itemsPerPage: Int = GithubService.ITEMS_PERPAGE,
-               loadCallback: (NetworkState) -> Unit): Flowable<PagedList<Repo>> {
+               loadCallback: (NetworkState, Boolean) -> Unit): Flowable<PagedList<Repo>> {
         val dataSourceFactory = db.reposDao().reposByName("%${query.replace(' ', '%')}%")
-        val boundaryCallback = GithubBoundaryCallback(db, service, query, itemsPerPage, loadCallback)
+        boundaryCallback.query = query
+        boundaryCallback.itemsPerPage = itemsPerPage
+        boundaryCallback.loadCallback = loadCallback
         return RxPagedListBuilder(dataSourceFactory, itemsPerPage)
                 .setBoundaryCallback(boundaryCallback)
                 .buildFlowable(BackpressureStrategy.LATEST)
+    }
+
+    fun refresh() {
+        boundaryCallback.currPage = 1
+        boundaryCallback.onZeroItemsLoaded()
+    }
+
+    fun retry() {
+        boundaryCallback.doOnItemAtEndLoaded()
     }
 }

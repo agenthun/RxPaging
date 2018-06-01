@@ -19,4 +19,6 @@ data class NetworkState(
         val LOADING = NetworkState(Status.RUNNING)
         fun error(msg: String?) = NetworkState(Status.FAILED, msg)
     }
+
+    val isRunning = status != null && status == Status.RUNNING
 }

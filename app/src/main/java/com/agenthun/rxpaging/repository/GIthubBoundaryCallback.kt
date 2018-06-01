@@ -18,13 +18,14 @@ private const val TAG = "GithubBoundaryCallback"
 
 class GithubBoundaryCallback(
         private val db: RepoDb,
-        private val service: GithubService,
-        private val query: String,
-        private val itemsPerPage: Int,
-        private val loadCallback: (NetworkState) -> Unit) : PagedList.BoundaryCallback<Repo>() {
-    private var currPage = 1
+        private val service: GithubService) : PagedList.BoundaryCallback<Repo>() {
+
+    lateinit var query: String
+    var itemsPerPage = GithubService.ITEMS_PERPAGE
+    var currPage = 1
     private var hasNextPage = true
     private var isRequestInProgress = false
+    lateinit var loadCallback: (NetworkState, Boolean) -> Unit
 
     override fun onZeroItemsLoaded() {
         super.onZeroItemsLoaded()
@@ -35,6 +36,10 @@ class GithubBoundaryCallback(
     override fun onItemAtEndLoaded(itemAtEnd: Repo) {
         super.onItemAtEndLoaded(itemAtEnd)
         Log.d(TAG, "onItemAtEndLoaded")
+        doOnItemAtEndLoaded()
+    }
+
+    fun doOnItemAtEndLoaded() {
         if (hasNextPage)
             search()
     }
@@ -45,10 +50,9 @@ class GithubBoundaryCallback(
         Log.d(TAG, "search start, page=$currPage")
 
         val apiQuery = query + GithubService.IN_QUALIFIER
-        loadCallback(NetworkState.LOADING)
+        loadCallback(NetworkState.LOADING, currPage == 1)
         service.searchRepos(apiQuery, currPage, itemsPerPage)
                 .filter {
-                    isRequestInProgress = false
                     return@filter it.items.isNotEmpty()
                 }
                 .flatMap {
@@ -63,11 +67,13 @@ class GithubBoundaryCallback(
                             if (hasNextPage) {
                                 currPage++
                             }
-                            loadCallback(NetworkState.LOADED)
+                            loadCallback(NetworkState.LOADED, currPage == 1)
+                            isRequestInProgress = false
                         },
                         {
                             Log.e(TAG, "search, error: ${it.message}")
-                            loadCallback(NetworkState.error(it.message))
+                            loadCallback(NetworkState.error(it.message), currPage == 1)
+                            isRequestInProgress = false
                         }
                 )
     }
