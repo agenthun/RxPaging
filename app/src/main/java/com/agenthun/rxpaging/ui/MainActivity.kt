@@ -7,7 +7,6 @@ import android.view.KeyEvent
 import android.view.inputmethod.EditorInfo
 import com.agenthun.rxpaging.Injection
 import com.agenthun.rxpaging.R
-import com.agenthun.rxpaging.vo.NetworkState
 import io.reactivex.disposables.CompositeDisposable
 import kotlinx.android.synthetic.main.activity_main.*
 
@@ -53,16 +52,13 @@ class MainActivity : AppCompatActivity() {
             if (it.isNotEmpty()) {
                 recyclerView.scrollToPosition(0)
                 adapter.submitList(null)
-                adapter.setNetworkState(NetworkState.LOADING)
-                disposable.add(viewModel.showSearchResult(it.toString()).subscribe(
+                disposable.add(viewModel.showSearchResult(it.toString(), { runOnUiThread { adapter.setNetworkState(it) } }).subscribe(
                         {
                             Log.d(TAG, "it=$it")
                             adapter.submitList(it)
-                            adapter.setNetworkState(NetworkState.LOADED)
                         },
                         { error ->
                             Log.e(TAG, "error: ${error.message}")
-                            adapter.setNetworkState(NetworkState.error(error.message))
                         }
                 ))
             }

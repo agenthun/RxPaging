@@ -4,6 +4,7 @@ import android.arch.paging.PagedList
 import android.util.Log
 import com.agenthun.rxpaging.api.GithubService
 import com.agenthun.rxpaging.db.RepoDb
+import com.agenthun.rxpaging.vo.NetworkState
 import com.agenthun.rxpaging.vo.Repo
 import io.reactivex.Flowable
 import io.reactivex.schedulers.Schedulers
@@ -19,7 +20,8 @@ class GithubBoundaryCallback(
         private val db: RepoDb,
         private val service: GithubService,
         private val query: String,
-        private val itemsPerPage: Int) : PagedList.BoundaryCallback<Repo>() {
+        private val itemsPerPage: Int,
+        private val loadCallback: (NetworkState) -> Unit) : PagedList.BoundaryCallback<Repo>() {
     private var currPage = 1
     private var hasNextPage = true
     private var isRequestInProgress = false
@@ -43,6 +45,7 @@ class GithubBoundaryCallback(
         Log.d(TAG, "search start, page=$currPage")
 
         val apiQuery = query + GithubService.IN_QUALIFIER
+        loadCallback(NetworkState.LOADING)
         service.searchRepos(apiQuery, currPage, itemsPerPage)
                 .filter {
                     isRequestInProgress = false
@@ -60,9 +63,11 @@ class GithubBoundaryCallback(
                             if (hasNextPage) {
                                 currPage++
                             }
+                            loadCallback(NetworkState.LOADED)
                         },
                         {
                             Log.e(TAG, "search, error: ${it.message}")
+                            loadCallback(NetworkState.error(it.message))
                         }
                 )
     }
