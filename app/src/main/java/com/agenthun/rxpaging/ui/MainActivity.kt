@@ -1,5 +1,6 @@
 package com.agenthun.rxpaging.ui
 
+import android.arch.lifecycle.ViewModelProviders
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
@@ -22,7 +23,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         val viewModelFactory = Injection.provideViewModelFactory(this)
-        viewModel = viewModelFactory.create(ReposViewModel::class.java)
+        viewModel = ViewModelProviders.of(this, viewModelFactory)[ReposViewModel::class.java]
 
         searchRepo.setOnEditorActionListener({ _, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_GO) {

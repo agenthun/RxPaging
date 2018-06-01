@@ -43,6 +43,7 @@ dependencies {
     def lifecycle_version = "1.1.1"
     implementation "android.arch.lifecycle:runtime:$lifecycle_version"
     implementation "android.arch.lifecycle:viewmodel:$lifecycle_version"
+    implementation "android.arch.lifecycle:extensions:$lifecycle_version"
     kapt "android.arch.lifecycle:compiler:$lifecycle_version"
 
     def room_version = "1.1.0"
