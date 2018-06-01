@@ -19,8 +19,8 @@ class GithubRepository(
         private val service: GithubService) {
 
     fun search(query: String,
-               itemsPerPage: Int = 15): Flowable<PagedList<Repo>> {
-        val dataSourceFactory = db.reposDao().reposByName(query)
+               itemsPerPage: Int = GithubService.ITEMS_PERPAGE): Flowable<PagedList<Repo>> {
+        val dataSourceFactory = db.reposDao().reposByName("%${query.replace(' ', '%')}%")
         val boundaryCallback = GithubBoundaryCallback(db, service, query, itemsPerPage)
         return RxPagedListBuilder(dataSourceFactory, itemsPerPage)
                 .setBoundaryCallback(boundaryCallback)

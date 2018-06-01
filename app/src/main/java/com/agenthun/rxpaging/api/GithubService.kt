@@ -26,6 +26,7 @@ interface GithubService {
     companion object {
         private const val BASE_URL = "https://api.github.com/"
         const val IN_QUALIFIER = "in:name,description"
+        const val ITEMS_PERPAGE = 15
 
         fun create(): GithubService {
             val logger = HttpLoggingInterceptor(HttpLoggingInterceptor.Logger {

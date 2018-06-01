@@ -1,5 +1,6 @@
 package com.agenthun.rxpaging.vo
 
+import com.agenthun.rxpaging.api.GithubService
 import com.google.gson.annotations.SerializedName
 
 /**
@@ -9,6 +10,9 @@ import com.google.gson.annotations.SerializedName
  */
 data class RepoSearchResponse(
         @SerializedName("total_count") val total: Int = 0,
-        @SerializedName("items") val items: List<Repo> = emptyList(),
-        val nextPage: Int? = null
-)
+        @SerializedName("items") val items: List<Repo> = emptyList()
+) {
+    fun totalPage() = Math.ceil(total * 1.0 / GithubService.ITEMS_PERPAGE).toInt()
+
+    fun hasNextPage(currPage: Int) = currPage < totalPage()
+}
