@@ -21,29 +21,29 @@ class GithubBoundaryCallback(
         private val query: String,
         private val itemsPerPage: Int) : PagedList.BoundaryCallback<Repo>() {
     private var currPage = 1
-    private var maxPage = 1
+    private var hasNextPage = true
     private var isRequestInProgress = false
 
     override fun onZeroItemsLoaded() {
         super.onZeroItemsLoaded()
         Log.d(TAG, "onZeroItemsLoaded")
-        search(currPage)
+        search()
     }
 
     override fun onItemAtEndLoaded(itemAtEnd: Repo) {
         super.onItemAtEndLoaded(itemAtEnd)
         Log.d(TAG, "onItemAtEndLoaded")
-        if (maxPage != 1 && currPage < maxPage)
-            search(currPage)
+        if (hasNextPage)
+            search()
     }
 
-    private fun search(page: Int) {
+    private fun search() {
         if (isRequestInProgress) return
         isRequestInProgress = true
-        Log.d(TAG, "search, page=$page")
+        Log.d(TAG, "search start, page=$currPage")
 
         val apiQuery = query + GithubService.IN_QUALIFIER
-        service.searchRepos(apiQuery, page, itemsPerPage)
+        service.searchRepos(apiQuery, currPage, itemsPerPage)
                 .filter {
                     isRequestInProgress = false
                     return@filter it.items.isNotEmpty()
@@ -55,9 +55,8 @@ class GithubBoundaryCallback(
                 .subscribeOn(Schedulers.io())
                 .subscribe(
                         {
-                            maxPage = it.totalPage()
-                            val hasNextPage = it.hasNextPage(currPage)
-                            Log.d(TAG, "search, success, maxPage: $maxPage, currPage: $currPage, hasNextPage: $hasNextPage")
+                            hasNextPage = it.hasNextPage(currPage)
+                            Log.d(TAG, "search, success, totalPage: ${it.totalPage()}, currPage: $currPage, hasNextPage: $hasNextPage")
                             if (hasNextPage) {
                                 currPage++
                             }
