@@ -21,4 +21,6 @@ data class NetworkState(
     }
 
     val isRunning = status != null && status == Status.RUNNING
+    
+    val isFailed = status != null && status == Status.FAILED
 }

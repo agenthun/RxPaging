@@ -78,6 +78,10 @@ class MainActivity : AppCompatActivity() {
                                     swipeRefresh.isRefreshing = false
                                     adapter.setNetworkState(networkState)
                                 }
+                                if (networkState.isFailed) {
+                                    Toast.makeText(this, networkState.msg
+                                            ?: getString(R.string.error), Toast.LENGTH_SHORT).show()
+                                }
                             }
                         })
                         .subscribe(
@@ -87,7 +91,8 @@ class MainActivity : AppCompatActivity() {
                                 },
                                 { error ->
                                     Log.e(TAG, "error: ${error.message}")
-                                    Toast.makeText(this, error.message, Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(this, error.message
+                                            ?: getString(R.string.error), Toast.LENGTH_SHORT).show()
                                 }
                         ))
             } else {
