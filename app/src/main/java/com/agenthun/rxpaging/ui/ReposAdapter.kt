@@ -72,11 +72,11 @@ class ReposAdapter(private val retryCallback: () -> Unit)
 
     companion object {
         val POST_COMPARATOR = object : DiffUtil.ItemCallback<Repo>() {
-            override fun areItemsTheSame(oldItem: Repo?, newItem: Repo?): Boolean {
-                return oldItem?.id == newItem?.id
+            override fun areItemsTheSame(oldItem: Repo, newItem: Repo): Boolean {
+                return oldItem.id == newItem.id
             }
 
-            override fun areContentsTheSame(oldItem: Repo?, newItem: Repo?): Boolean {
+            override fun areContentsTheSame(oldItem: Repo, newItem: Repo): Boolean {
                 return oldItem == newItem
             }
         }
