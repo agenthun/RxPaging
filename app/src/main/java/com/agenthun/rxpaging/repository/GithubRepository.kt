@@ -2,6 +2,7 @@ package com.agenthun.rxpaging.repository
 
 import android.arch.paging.PagedList
 import android.arch.paging.RxPagedListBuilder
+import android.util.Log
 import com.agenthun.rxpaging.api.GithubService
 import com.agenthun.rxpaging.db.RepoDb
 import com.agenthun.rxpaging.vo.NetworkState
@@ -20,6 +21,7 @@ class GithubRepository(
         private val service: GithubService) {
 
     private val boundaryCallback = GithubBoundaryCallback(db, service)
+    private var lastList: PagedList<Repo>? = null
 
     fun search(query: String,
                itemsPerPage: Int = GithubService.ITEMS_PERPAGE,
@@ -31,6 +33,14 @@ class GithubRepository(
         return RxPagedListBuilder(dataSourceFactory, itemsPerPage)
                 .setBoundaryCallback(boundaryCallback)
                 .buildFlowable(BackpressureStrategy.LATEST)
+                .flatMap {
+                    if (lastList != null) {
+                        val isSame = lastList!!.containsAll(it)
+                        Log.i("GithubRepository", "isSame = $isSame")
+                    }
+                    lastList = it
+                    return@flatMap Flowable.just(it)
+                }
     }
 
     fun refresh() {

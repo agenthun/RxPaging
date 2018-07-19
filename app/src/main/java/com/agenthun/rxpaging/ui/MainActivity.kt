@@ -12,8 +12,6 @@ import com.agenthun.rxpaging.R
 import io.reactivex.disposables.CompositeDisposable
 import kotlinx.android.synthetic.main.activity_main.*
 
-private const val TAG = "MainActivity"
-
 class MainActivity : AppCompatActivity() {
 
     private lateinit var viewModel: ReposViewModel
@@ -27,22 +25,22 @@ class MainActivity : AppCompatActivity() {
         val viewModelFactory = Injection.provideViewModelFactory(this)
         viewModel = ViewModelProviders.of(this, viewModelFactory)[ReposViewModel::class.java]
 
-        searchRepo.setOnEditorActionListener({ _, actionId, _ ->
+        searchRepo.setOnEditorActionListener { _, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_GO) {
                 updateRepoListFromInput()
                 true
             } else {
                 false
             }
-        })
-        searchRepo.setOnKeyListener({ _, keyCode, event ->
+        }
+        searchRepo.setOnKeyListener { _, keyCode, event ->
             if (event.action == KeyEvent.ACTION_DOWN && keyCode == KeyEvent.KEYCODE_ENTER) {
                 updateRepoListFromInput()
                 true
             } else {
                 false
             }
-        })
+        }
 
         swipeRefresh.setOnRefreshListener {
             Log.i(TAG, "refresh")
@@ -55,10 +53,10 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        adapter = ReposAdapter({
+        adapter = ReposAdapter {
             Log.i(TAG, "retry")
             viewModel.retry()
-        })
+        }
         recyclerView.adapter = adapter
     }
 
@@ -69,21 +67,19 @@ class MainActivity : AppCompatActivity() {
                 recyclerView.scrollToPosition(0)
                 adapter.submitList(null)
                 disposable.add(viewModel.showSearchResult(
-                        it.toString(),
-                        { networkState, forceRefresh ->
-                            runOnUiThread {
-                                if (forceRefresh) {
-                                    swipeRefresh.isRefreshing = networkState.isRunning
-                                } else {
-                                    swipeRefresh.isRefreshing = false
-                                    adapter.setNetworkState(networkState)
-                                }
-                                if (networkState.isFailed) {
-                                    Toast.makeText(this, networkState.msg
-                                            ?: getString(R.string.error), Toast.LENGTH_SHORT).show()
-                                }
-                            }
-                        })
+                        it.toString()
+                ) { networkState, forceRefresh ->
+                    if (forceRefresh) {
+                        swipeRefresh.isRefreshing = networkState.isRunning
+                    } else {
+                        swipeRefresh.isRefreshing = false
+                        adapter.setNetworkState(networkState)
+                    }
+                    if (networkState.isFailed) {
+                        Toast.makeText(this, networkState.msg
+                                ?: getString(R.string.error), Toast.LENGTH_SHORT).show()
+                    }
+                }
                         .subscribe(
                                 {
                                     Log.d(TAG, "it=$it")
@@ -104,5 +100,9 @@ class MainActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         disposable.clear()
+    }
+
+    companion object {
+        private const val TAG = "MainActivity"
     }
 }

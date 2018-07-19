@@ -7,6 +7,7 @@ import com.agenthun.rxpaging.db.RepoDb
 import com.agenthun.rxpaging.vo.NetworkState
 import com.agenthun.rxpaging.vo.Repo
 import io.reactivex.Flowable
+import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 
 /**
@@ -14,8 +15,6 @@ import io.reactivex.schedulers.Schedulers
  * @authors agenthun
  * @date    2018/5/31 23:34.
  */
-private const val TAG = "GithubBoundaryCallback"
-
 class GithubBoundaryCallback(
         private val db: RepoDb,
         private val service: GithubService) : PagedList.BoundaryCallback<Repo>() {
@@ -60,6 +59,7 @@ class GithubBoundaryCallback(
                     return@flatMap Flowable.just(it)
                 }
                 .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
                         {
                             hasNextPage = it.hasNextPage(currPage)
@@ -76,5 +76,9 @@ class GithubBoundaryCallback(
                             isRequestInProgress = false
                         }
                 )
+    }
+
+    companion object {
+        private const val TAG = "GithubBoundaryCallback"
     }
 }
